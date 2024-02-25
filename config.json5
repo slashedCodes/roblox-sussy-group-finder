@@ -1,0 +1,27 @@
+{
+    // A list of the group ID's the script has to start with.
+    initial_groups: ["6950155", "10376187"],
+
+    // This is the words the script tries to find in usernames.
+    matchlist: ["fem", "femboy", "femby", "bbc", "toy", "slut", "cumslut", "cum", "milk", "milked", "inch", "inches", "cm", "centi", "centimeters", "12y", "12yo", "13y", "13yo", "14y", "14yo", "12years", "13years", "14years", "bull", "bigbull"],
+    
+    // The match score is the amount of matches in an account, spread across the username and display name. 
+    // 1 means one match, 0 means every account gets looked at (NOT RECOMMENDED)
+    match_score_limit: 1,
+    
+    // The delay that the script waits inbetween repeated requests to the Roblox API.
+    request_delay: 0.1,
+
+    // If the script should output more info or not
+    verbose: true,
+
+    output_file: "groups.txt",
+
+    group_threshold: 100,
+
+    /*
+        mode 1: add found groups bigger than group_thershold in members to the initial_group list, then repeat the cycle, and write found groups to a text file
+        mode 2: write found groups to a text file
+    */
+    mode: 1
+}
