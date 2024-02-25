@@ -29,7 +29,7 @@ def main():
                 TODO: Add modes,
                       Make the groups in the text file be sorted by member count.
                       Add verbose info
-
+                      Add member output file
             """
 
             for member in matched_members:
