@@ -23,8 +23,8 @@ def main():
         print(f'[Info] Auto retry after timeout mode is {"on" if auto_retry_after_timeout else "off"}.')
         divider()
 
-    with open(users_output_file, "w", buffering=1) as users_file:
-        with open(group_output_file, "w", buffering=1) as groups_file:
+    with open(users_output_file, "a", buffering=1) as users_file:
+        with open(group_output_file, "a", buffering=1) as groups_file:
             for group_id in initial_groups:
                 member_objects = get_all_members_in_group(group_id)
 
@@ -43,6 +43,19 @@ def main():
                         member_group_ids = get_user_groups(member)
                         for member_group_id in member_group_ids:
                             group_info = get_group_info(member_group_id)
+
+                            if group_info == "timeout":
+                                # timeout xd
+                                if auto_retry_after_timeout:
+                                    if verbose:
+                                        print(f'[Info] Timeout error on get_group_info(). Waiting {request_delay * 2} seconds and retrying.')
+                                    time.sleep(request_delay * 2)
+                                    group_info = get_group_info(member_group_id)
+                                else:
+                                    fancy_error("get_group_info()", "Timeout error.", "HTTP code 429.")
+                            
+                            if group_info == "timeout":
+                                fancy_error("get_group_info()", "Timeout error number 2. Try increasing the request delay or wait a little and run the script again.")
 
                             if not group_info:
                                 continue

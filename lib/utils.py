@@ -30,6 +30,10 @@ def get_group_info(group_id):
         data = response.json()
         return data
     else:
+        if response.status_code == 429 and auto_retry_after_timeout:
+            # timeout !!! xd
+            fancy_warning("get_group_info()", f"Roblox API Timeout.", f"HTTP status code 429")
+            return "timeout"
         fancy_warning("get_group_info()", f"Error fetching group info for group {group_id}.", f"HTTP status code {response.status_code}")
         return None
 
