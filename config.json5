@@ -19,8 +19,6 @@
 
     users_output_file: "users.txt",
 
-    //group_threshold: 100, no idea why i put this here lol
-
     // The maximum amount of members in a group that the script will look at.
     group_maximum_members: 2000,
 
