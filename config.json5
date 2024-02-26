@@ -22,8 +22,8 @@
     group_threshold: 100,
 
     /*
-        mode 1: add found groups bigger than group_thershold in members to the initial_group list, then repeat the cycle, and write found groups to a text file
-        mode 2: write found groups to a text file
+        mode 1: for every user found, write down the user and look at the groups that the user is in too.
+        mode 2: only write down users found.
     */
-    mode: 1
+    mode: 2
 }

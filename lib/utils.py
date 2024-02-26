@@ -47,7 +47,7 @@ def get_all_members_in_group(group_id, cursor=None):
     data = get_group_members(group_id)
     request_count = 1
     if verbose:
-        print(f'[Info] Roblox API request {request_count}...')
+        print(f'[Info] Roblox API request {request_count}... ({request_delay} second delay)')
 
     while data["nextPageCursor"]:
         try:
@@ -122,7 +122,6 @@ def match_usernames(name_list, display_list, id_list, match_list):
     if not len(name_list) == len(display_list):
         fancy_error("match_usernames()", "The length of the username list is not the same as the length of the display name list.")
 
-    print(len(name_list))
     for i in range(len(name_list)):
         id = id_list[i]
         username = name_list[i]
