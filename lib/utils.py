@@ -84,7 +84,9 @@ def get_group_score(group_id):
             group_score += 1
             if verbose:
                 print(f'[Info] Found user: https://www.roblox.com/users/{member}/profile')
-            users_file.write(f'https://www.roblox.com/users/{member}/profile')
+            users_file.write(f'https://www.roblox.com/users/{member}/profile\n')
+    
+    return group_score
         
 
 def get_user_groups(user_id):
@@ -120,7 +122,8 @@ def match_usernames(name_list, display_list, id_list, match_list):
     if not len(name_list) == len(display_list):
         fancy_error("match_usernames()", "The length of the username list is not the same as the length of the display name list.")
 
-    for i in range(0, len(name_list)):
+    print(len(name_list))
+    for i in range(len(name_list)):
         id = id_list[i]
         username = name_list[i]
         display_name = display_list[i]
@@ -137,7 +140,6 @@ def funny_func(object, index):
     funny = []
     
     for i in object:
-        print(i[index])
         funny.append(i[index])
     
     return funny

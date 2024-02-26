@@ -10,7 +10,8 @@ from os import path
 from lib.utils import *
 from lib.config import *
 
-
+print("Roblox grandpa locator 9000")
+print("")
 
 # Functions and stuff #
 def main():
@@ -30,13 +31,13 @@ def main():
                 """
                     TODO: Add modes,
                         Make the groups in the text file be sorted by member count.
-                        Add verbose info
+                        Add verbose info       | done
                         Add member output file | done
                 """
 
                 for member in matched_members:
                     member_group_ids = get_user_groups(member)
-                    users_file.write(f'https://www.roblox.com/users/{member}/profile')
+                    users_file.write(f'https://www.roblox.com/users/{member}/profile\n')
                     for member_group_id in member_group_ids:
                         group_score = get_group_score(member_group_id)
                         if verbose:

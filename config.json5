@@ -9,8 +9,8 @@
     // 1 means one match, 0 means every account gets looked at (NOT RECOMMENDED)
     match_score_limit: 1,
     
-    // The delay that the script waits inbetween repeated requests to the Roblox API.
-    request_delay: 0.1,
+    // The delay that the script waits inbetween repeated requests to the Roblox API. Increase if you're getting timeout errors.
+    request_delay: 10,
 
     // If the script should output more info or not
     verbose: true,
