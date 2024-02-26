@@ -1,6 +1,7 @@
 import requests
 import time
 from sys import exit
+from os import path
 from lib.config import *
 
 def fancy_error(function_name, message, err=None):
@@ -40,16 +41,24 @@ def get_group_members(group_id, cursor=None):
 
 def get_all_members_in_group(group_id, cursor=None):
     members = []
+    if verbose:
+        print(f'[Info] Getting all members in group {group_id}.')
 
     data = get_group_members(group_id)
+    request_count = 1
+    if verbose:
+        print(f'[Info] Roblox API request {request_count}...')
+
     while data["nextPageCursor"]:
         try:
             for member in data["data"]:
-                print(member)
                 members.append([member["user"]["userId"], member["user"]["username"], member["user"]["displayName"]]) #save a shit ton of api requests
 
             time.sleep(request_delay) # avoid timeout
             data = get_group_members(group_id, data["nextPageCursor"])
+            request_count += 1
+            if verbose:
+                print(f'[Info] Roblox API request {request_count}...')
             if not data:
                 fancy_error("get_all_members_in_group()", "data returned None. Likely a timeout from the Roblox API.")
         except Exception as e:
@@ -57,9 +66,33 @@ def get_all_members_in_group(group_id, cursor=None):
     
     return members
 
+def get_group_score(group_id):
+    wordlist = set(expand_list(matchlist))
+    member_objects = get_all_members_in_group(group_id)
+    group_score = 0
+
+    if verbose:
+        print(f'[Info] Calculating group score for group {group_id}.')
+
+    # get stuff
+    members = funny_func(member_objects, 0)
+    usernames = funny_func(member_objects, 1)
+    display_names = funny_func(member_objects, 2) 
+    matched_members = match_usernames(usernames, display_names, members, wordlist)
+    with open(path.realpath(users_output_file), 'w') as users_file:
+        for member in matched_members:
+            group_score += 1
+            if verbose:
+                print(f'[Info] Found user: https://www.roblox.com/users/{member}/profile')
+            users_file.write(f'https://www.roblox.com/users/{member}/profile')
+        
+
 def get_user_groups(user_id):
     url = f"https://groups.roblox.com/v1/users/{user_id}/groups/roles"
     response = requests.get(url)
+    if verbose:
+        print(f'[Info] Getting groups for user {user_id}.')
+    
     if response.status_code == 200:
         data = response.json()
         return [group["group"]["id"] for group in data["data"]]
@@ -77,6 +110,9 @@ def match_string(string, match_list):
 
 def match_usernames(name_list, display_list, id_list, match_list):
     final_list = []
+
+    if verbose:
+        print(f'[Info] Filtering group users...')
 
     if name_list == None or display_list == None or id_list == None:
         fancy_error("match_usernames()", "An error happened somewhere, that the script didnt catch since one of the lists is empty.")
@@ -111,6 +147,8 @@ def expand_list(list):
     final_list = []
 
     # this can be improved but i dont want to improve it
+    if verbose:
+        print(f'[Info] Expanding wordlist...')
     for w in list:
         word = w.strip()
         final_list.append(word)

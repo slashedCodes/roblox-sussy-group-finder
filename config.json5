@@ -15,7 +15,9 @@
     // If the script should output more info or not
     verbose: true,
 
-    output_file: "groups.txt",
+    group_output_file: "groups.txt",
+
+    users_output_file: "users.txt",
 
     group_threshold: 100,
 
