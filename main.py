@@ -44,8 +44,8 @@ def main():
                         for member_group_id in member_group_ids:
                             group_info = get_group_info(member_group_id)
 
-                            if group_info == "timeout":
-                                # timeout xd
+                            # this timeout code is really messy todo: fix this shit
+                            if group_info == "timeout": # first timeout
                                 if auto_retry_after_timeout:
                                     if verbose:
                                         print(f'[Info] Timeout error on get_group_info(). Waiting {request_delay * 2} seconds and retrying.')
@@ -54,7 +54,7 @@ def main():
                                 else:
                                     fancy_error("get_group_info()", "Timeout error.", "HTTP code 429.")
                             
-                            if group_info == "timeout":
+                            if group_info == "timeout": # second timeout
                                 fancy_error("get_group_info()", "Timeout error number 2. Try increasing the request delay or wait a little and run the script again.")
 
                             if not group_info:
