@@ -3,14 +3,14 @@
     initial_groups: ["6950155", "10376187"],
 
     // This is the words the script tries to find in usernames.
-    matchlist: ["fem", "femboy", "femby", "bbc", "toy", "slut", "cumslut", "cum", "milk", "milked", "inch", "inches", "cm", "centi", "centimeters", "12y", "12yo", "13y", "13yo", "14y", "14yo", "12years", "13years", "14years", "bull", "bigbull"],
+    matchlist: ["fem", "femboy", "femby", "bbc", "toy", "slut", "cumslut", "cum", "milk", "milked", "inch", "inches", "cm", "centi", "centimeters", "12y", "12yo", "13y", "13yo", "14y", "14yo", "12years", "13years", "14years", "bull", "bigbull", "horny", "hrny"],
     
     // The match score is the amount of matches in an account, spread across the username and display name. 
     // 1 means one match, 0 means every account gets looked at (NOT RECOMMENDED)
     match_score_limit: 1,
     
-    // The delay that the script waits inbetween repeated requests to the Roblox API. Increase if you're getting timeout errors.
-    request_delay: 10,
+    // The delay that the script waits inbetween repeated requests to the Roblox API. Modify to your needs.
+    request_delay: 3,
 
     // If the script should output more info or not
     verbose: true,
@@ -19,11 +19,17 @@
 
     users_output_file: "users.txt",
 
-    group_threshold: 100,
+    //group_threshold: 100, no idea why i put this here lol
+
+    // The maximum amount of members in a group that the script will look at.
+    group_maximum_members: 2000,
 
     /*
-        mode 1: for every user found, write down the user and look at the groups that the user is in too.
-        mode 2: only write down users found.
+        Mode 1: For every user found, write down the user and look at the groups that the user is in too.
+        Mode 2: Only write down users found. (less demanding on the Roblox API)
     */
-    mode: 2
+    mode: 1,
+
+    // If true, the script will wait double the request delay after a timed out request, then try again.
+    auto_retry_after_timeout: true
 }

@@ -4,6 +4,13 @@ from sys import exit
 from os import path
 from lib.config import *
 
+def divider(length=50):
+    string = ""
+    for i in range(length):
+        string += "-"
+    print(string)
+    return divider
+
 def fancy_error(function_name, message, err=None):
     print(f'[Error] {function_name}: {message}')
     if err: 
@@ -41,26 +48,40 @@ def get_group_members(group_id, cursor=None):
 
 def get_all_members_in_group(group_id, cursor=None):
     members = []
+    next_page_cursor = None
     if verbose:
         print(f'[Info] Getting all members in group {group_id}.')
 
     data = get_group_members(group_id)
+    next_page_cursor = data["nextPageCursor"] if data["nextPageCursor"] else None
     request_count = 1
     if verbose:
         print(f'[Info] Roblox API request {request_count}... ({request_delay} second delay)')
 
-    while data["nextPageCursor"]:
+    while next_page_cursor:
         try:
             for member in data["data"]:
                 members.append([member["user"]["userId"], member["user"]["username"], member["user"]["displayName"]]) #save a shit ton of api requests
 
-            time.sleep(request_delay) # avoid timeout
+            time.sleep(request_delay) # avoid timeout (most of the times)
+
             data = get_group_members(group_id, data["nextPageCursor"])
+            next_page_cursor = data["nextPageCursor"] if data["nextPageCursor"] else None
             request_count += 1
             if verbose:
-                print(f'[Info] Roblox API request {request_count}...')
+                print(f'[Info] Roblox API request {request_count}... ({request_delay} second delay)')
             if not data:
-                fancy_error("get_all_members_in_group()", "data returned None. Likely a timeout from the Roblox API.")
+                if auto_retry_after_timeout:
+                    fancy_warning("get_all_members_in_group()", "data returned None. Likely a timeout from the Roblox API.")
+                    time.sleep(request_delay * 2)
+
+                    if verbose:
+                        print(f'[Info] Roblox API request {request_count}... ({request_delay * 2} second delay)')
+
+                    data = get_group_members(group_id, data["nextPageCursor"]) # idk if the next page cursor would work but oh well
+                    next_page_cursor = data["nextPageCursor"] if data["nextPageCursor"] else None
+                else:
+                    fancy_error("get_all_members_in_group()", "data returned None. Likely a timeout from the Roblox API.")
         except Exception as e:
             fancy_error("get_all_members_in_group()", "General request error, likely a timeout from the Roblox API.", e)
     
@@ -68,6 +89,8 @@ def get_all_members_in_group(group_id, cursor=None):
 
 def get_group_score(group_id):
     wordlist = set(expand_list(matchlist))
+    if verbose:
+        divider()
     member_objects = get_all_members_in_group(group_id)
     group_score = 0
 
@@ -79,6 +102,7 @@ def get_group_score(group_id):
     usernames = funny_func(member_objects, 1)
     display_names = funny_func(member_objects, 2) 
     matched_members = match_usernames(usernames, display_names, members, wordlist)
+
     with open(path.realpath(users_output_file), 'w') as users_file:
         for member in matched_members:
             group_score += 1

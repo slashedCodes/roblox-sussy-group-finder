@@ -8,7 +8,7 @@
 # funny #
 print(f'[Roblox grandpa finder 9000]')
 print(f'[     use responsibly.     ]')
-print(f'')
+print(f'--------------------------------------------------')
 
 # Imports #
 from lib.utils import *
@@ -20,9 +20,11 @@ def main():
 
     if verbose:
         print(f'[Info] The script is set to the {"groups and users" if mode == 1 else "only users"} mode.')
+        print(f'[Info] Auto retry after timeout mode is {"on" if auto_retry_after_timeout else "off"}.')
+        divider()
 
-    with open(users_output_file, "w") as users_file:
-        with open(group_output_file, "w") as groups_file:
+    with open(users_output_file, "w", buffering=1) as users_file:
+        with open(group_output_file, "w", buffering=1) as groups_file:
             for group_id in initial_groups:
                 member_objects = get_all_members_in_group(group_id)
 
@@ -32,21 +34,23 @@ def main():
                 display_names = funny_func(member_objects, 2) 
                 matched_members = match_usernames(usernames, display_names, members, wordlist)
 
-                """
-                    TODO: Add modes,
-                        Make the groups in the text file be sorted by member count.
-                        Add verbose info       | done
-                        Add member output file | done
-                """
-
                 for member in matched_members:
                     users_file.write(f'https://www.roblox.com/users/{member}/profile/\n')
                     if verbose:
-                        print(f'[Info] Found user: https://www.roblox.com/users/{member}/')
+                        print(f'[Info] Found user: https://www.roblox.com/users/{member}/profile')
                     
                     if mode == 1:
                         member_group_ids = get_user_groups(member)
                         for member_group_id in member_group_ids:
+                            group_info = get_group_info(member_group_id)
+
+                            if not group_info:
+                                continue
+
+                            if group_info["memberCount"] > group_maximum_members:
+                                print(f'[Info] Group {member_group_id} with {group_info["memberCount"]} members is above the limit of {group_maximum_members} group members. Skipping...')
+                                continue
+
                             group_score = get_group_score(member_group_id)
                             if verbose:
                                 print(f'[Info] Found group: https://www.roblox.com/groups/{member_group_id}/x - {group_score}')

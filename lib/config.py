@@ -15,11 +15,12 @@ try:
         match_score_limit = config["match_score_limit"]
         request_delay = config["request_delay"]
 
-
         group_output_file = config["group_output_file"]
         users_output_file = config["users_output_file"]
-        group_threshold = config["group_threshold"]
+        #group_threshold = config["group_threshold"]
+        group_maximum_members = config["group_maximum_members"]
         mode = config["mode"]
+        auto_retry_after_timeout = config["auto_retry_after_timeout"]
 except Exception as e:
     print(f'[Error] config.py: Error reading configuration.')
     print(f'[Error] config.py: {e}')
