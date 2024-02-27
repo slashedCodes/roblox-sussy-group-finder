@@ -31,7 +31,7 @@ def fancy_warning(function_name, message, err=None):
         print(f'[Warning] {function_name}: {err}')
 
 def clean_groups_output_file(path):
-    if verbose: print(f'[Info] Cleaning up groups file...')
+    if verbose: print(f'[Info] Cleaning up the groups file...')
     
     file_groups = set()
 
@@ -52,6 +52,25 @@ def clean_groups_output_file(path):
     with open(path, "w") as file: # Erase the file, then write back to it
         for group in file_groups:
             file.write(f'https://roblox.com/groups/{group[0]}/x - {group[1]}\n')
+    
+def clean_users_output_file(path):
+    if verbose: print(f'[Info] Cleaning up the users file...')
+    
+    file_groups = set()
+
+    with open(path, "r") as file: # Read the file and put every group into a set
+        file_contents = file.readlines()
+
+        for line in file_contents:
+            user_id_match = re.search("users\/(\d+)", line)
+            
+            if user_id_match:
+                user_id = int(user_id_match.group(1))
+                file_groups.add(user_id)
+
+    with open(path, "w") as file: # Erase the file, then write back to it
+        for user_id in file_groups:
+            file.write(f'https://roblox.com/users/{user_id}/profile\n')
 
 def get_group_info(group_id):
     url = f"https://groups.roblox.com/v1/groups/{group_id}"

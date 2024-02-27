@@ -19,12 +19,15 @@ def menu():
     divider()
     print(f'1. Run the main script')
     print(f'2. Clean up the group output file')
+    print(f'3. Clean up the users output file')
     choice = input("> ")
 
     if choice == "1":
         main()
     elif choice == "2":
         clean_groups_output_file(group_output_file)
+    elif choice == "3":
+        clean_users_output_file(users_output_file)
     else:
         fancy_error("menu()", "Invalid choice. Exitting..")
     
@@ -49,8 +52,8 @@ def main():
                 matched_members = match_usernames(usernames, display_names, members, wordlist)
 
                 for member in matched_members:
-                    users_file.write(f'https://www.roblox.com/users/{member}/profile/\n')
-                    if verbose: print(f'[Info] Found user: https://www.roblox.com/users/{member}/profile')
+                    users_file.write(f'https://roblox.com/users/{member}/profile\n')
+                    if verbose: print(f'[Info] Found user: https://roblox.com/users/{member}/profile')
                     
                     if mode == 1:
                         member_group_ids = get_user_groups(member)
@@ -77,9 +80,9 @@ def main():
 
                             group_score = get_group_score(member_group_id)
                             if group_score >= group_minimum_matches:
-                                if verbose: print(f'[Info] Found group: https://www.roblox.com/groups/{member_group_id}/x - {group_score}')
+                                if verbose: print(f'[Info] Found group: https://roblox.com/groups/{member_group_id}/x - {group_score}')
 
-                                groups_file.write(f"https://www.roblox.com/groups/{member_group_id}/x - {group_score}\n")
+                                groups_file.write(f"https://roblox.com/groups/{member_group_id}/x - {group_score}\n")
                             else:
                                 if verbose: print(f'[Info] Group {group_id} has less than {group_minimum_matches}. It will not be added to the text file.')
     
