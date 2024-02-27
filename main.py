@@ -76,7 +76,7 @@ def main():
                                 continue
 
                             group_score = get_group_score(member_group_id)
-                            if group_score >= {group_minimum_matches}:
+                            if group_score >= group_minimum_matches:
                                 if verbose: print(f'[Info] Found group: https://www.roblox.com/groups/{member_group_id}/x - {group_score}')
 
                                 groups_file.write(f"https://www.roblox.com/groups/{member_group_id}/x - {group_score}\n")
