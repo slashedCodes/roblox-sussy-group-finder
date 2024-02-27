@@ -21,6 +21,9 @@
     // The output file for the users
     users_output_file: "users.txt",
 
+    // The maximum amount of friends a user can have which the script will look at.
+    maximum_friend_count: 100,
+
     // The maximum amount of members in a group that the script will look at.
     group_maximum_members: 5000,
 
@@ -28,8 +31,8 @@
     group_minimum_matches: 10,
 
     
-    // Mode 1: For every user found, write down the user and look at the groups that the user is in too.
-    // Mode 2: Only write down users found. (Less demanding on the Roblox API)
+    // Mode 1: Full mode. Looks at everything and anything it can find. (looks at the groups of group members, friends of group members, etc. tl;dr: a lot)
+    // Mode 2: Partial mode. Use if getting constant timeouts. (only looks at group members and at their friends)
     mode: 1,
 
     // If true, the script will wait double the request delay after a timed out request, then try again.

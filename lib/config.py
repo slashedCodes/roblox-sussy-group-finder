@@ -19,6 +19,7 @@ try:
         users_output_file = config["users_output_file"]
         group_maximum_members = config["group_maximum_members"]
         group_minimum_matches = config["group_minimum_matches"]
+        maximum_friend_count = config["maximum_friend_count"]
         mode = config["mode"]
         auto_retry_after_timeout = config["auto_retry_after_timeout"]
 except Exception as e:

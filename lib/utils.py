@@ -46,16 +46,15 @@ def clean_groups_output_file(path):
                 group_id = int(group_id_match.group(1))
                 group_score = int(group_score_match.group(1))
 
-                if group_score > 0: # This is for redundancy even if the script wont allow it.
+                if group_score > group_minimum_matches: # This is for redundancy even if the script wont allow it.
                     file_groups.add((group_id, group_score))
 
     with open(path, "w") as file: # Erase the file, then write back to it
         for group in file_groups:
             file.write(f'https://roblox.com/groups/{group[0]}/x - {group[1]}\n')
     
-def clean_users_output_file(path):
-    if verbose: print(f'[Info] Cleaning up the users file...')
-    
+def clean_users_output_file(path, banned_check=False):
+    if verbose: print(f'[Info] Cleaning up the users file (ban check {"on" if banned_check else "off"})...')
     file_groups = set()
 
     with open(path, "r") as file: # Read the file and put every group into a set
@@ -66,7 +65,15 @@ def clean_users_output_file(path):
             
             if user_id_match:
                 user_id = int(user_id_match.group(1))
-                file_groups.add(user_id)
+                if banned_check:
+                    user_info = get_user_info(user_id)
+
+                    if user_info and user_info["isBanned"] == False:
+                        file_groups.add(user_id)
+                    elif user_info and user_info["isBanned"] and verbose:
+                        print(f'[Info] User {user_id} is banned. Skipping..')
+                else:
+                    file_groups.add(user_id)
 
     with open(path, "w") as file: # Erase the file, then write back to it
         for user_id in file_groups:
@@ -156,22 +163,70 @@ def get_group_score(group_id):
     with open(path.realpath(users_output_file), 'a') as users_file:
         for member in matched_members:
             group_score += 1
-            users_file.write(f'https://www.roblox.com/users/{member}/profile\n')
-            if verbose: print(f'[Info] Found user: https://www.roblox.com/users/{member}/profile')
+            users_file.write(f'https://roblox.com/users/{member}/profile\n')
+            if verbose: print(f'[Info] Found user: https://roblox.com/users/{member}/profile')
+
+            # friends
+            friend_count = get_user_friend_count(member)
+            if friend_count <= maximum_friend_count:
+                friends = get_user_friends(member)
+                matched_friends = match_usernames(tuple_to_array(friends, 0), tuple_to_array(friends, 1), tuple_to_array(friends, 2), wordlist)
+                
+                for friend in matched_friends:
+                    users_file.write(f'https://roblox.com/users/{friend}/profile\n')
+                    if verbose: print(f'[Info] Found user: https://roblox.com/users/{friend}/profile')
+            else:
+                if verbose: print(f'[Info] User {member} has more than {maximum_friend_count} friends. Skipping friend check.')
     
     return group_score     
 
 def get_user_groups(user_id):
     url = f"https://groups.roblox.com/v1/users/{user_id}/groups/roles"
+    if verbose: print(f'[Info] Getting groups for user {user_id}.')
     response = requests.get(url)
-    if verbose:
-        print(f'[Info] Getting groups for user {user_id}.')
-    
+
     if response.status_code == 200:
         data = response.json()
         return [group["group"]["id"] for group in data["data"]]
     else:
         fancy_warning("get_user_groups()", f"Error fetching groups for user {user_id}. Likely API ban.")
+
+def get_user_friend_count(user_id):
+    url = f"https://friends.roblox.com/v1/users/{user_id}/friends/count/"
+    if verbose: print(f'[Info] Getting friend count for user {user_id}.')
+    response = requests.get(url)
+
+    if response.status_code == 200:
+        data = response.json()
+        return data["count"]
+    elif response.status_code == 400:
+        return None # invalid user
+
+def get_user_friends(user_id):
+    url = f"https://friends.roblox.com/v1/users/{user_id}/friends"
+    if verbose: print(f'[Info] Getting friends for user {user_id}.')
+    response = requests.get(url)
+
+    if response.status_code == 200:
+        data = response.json()
+        friends = []
+        for friend in data["data"]:
+            friends.append([friend["id"], friend["name"], friend["displayName"]]) # Hopefully this works
+
+        return friends
+    elif response.status_code == 400:
+        return None # invalid user
+
+def get_user_info(user_id):
+    url = f"https://users.roblox.com/v1/users/{user_id}/"
+    if verbose: print(f'[Info] Getting information for user {user_id}.')
+    response = requests.get(url)
+
+    if response.status_code == 200:
+        data = response.json()
+        return data
+    elif response.status_code == 404:
+        return None # invalid user
 
 def match_string(string, match_list):
     match_score = 0
