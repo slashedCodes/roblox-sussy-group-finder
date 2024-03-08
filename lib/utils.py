@@ -1,6 +1,7 @@
-import requests, time, re
+import requests, time, re, json
 from sys import exit
 from os import path
+from os import mkdir
 from lib.config import *
 
 def divider(length=50):
@@ -78,6 +79,39 @@ def clean_users_output_file(path, banned_check=False):
     with open(path, "w") as file: # Erase the file, then write back to it
         for user_id in file_groups:
             file.write(f'https://roblox.com/users/{user_id}/profile\n')
+
+def initialize_cache_files(cache_folder):
+    # if the files dont exist, initialize the files.
+    if verbose: print(f'[Info] Initializing cache files...')
+    if not path.exists(cache_folder): mkdir(cache_folder)
+    
+    user_cache_path = path.join(cache_folder, "users.json")
+    group_cache_path = path.join(cache_folder, "groups.json")
+
+    if not path.exists(user_cache_path): open(user_cache_path, "w").write("[]").close()
+    if not path.exists(group_cache_path): open(group_cache_path, "w").write("[]").close()
+
+def get_cache_contents(cache_folder):
+    if verbose: print(f'[Info] Getting cache file contents...')
+    user_cache_path = path.join(cache_folder, "users.json")
+    group_cache_path = path.join(cache_folder, "groups.json")
+    
+    user_cache_json = json.loads(open(user_cache_path, "r").read())
+    group_cache_json = json.loads(open(group_cache_path, "r").read())
+
+    user_cache_json.close()
+    group_cache_json.close()
+    return user_cache_json, group_cache_json
+
+def write_cache_contents(cache_folder, user_cache_json=None, group_cache_json=None):
+    if verbose: print(f'[Info] Writing cache file contents...')
+    if user_cache_json == None and group_cache_json == None: fancy_error("write_cache_contents()", "Both arguments of the function are empty.")
+    
+    user_cache_path = path.join(cache_folder, "users.json")
+    group_cache_path = path.join(cache_folder, "groups.json")
+
+    if user_cache_json: open(user_cache_path, "w").write(json.dumps(user_cache_json)).close()
+    if group_cache_json: open(group_cache_path, "w").write(json.dumps(group_cache_json)).close()
 
 def get_group_info(group_id):
     url = f"https://groups.roblox.com/v1/groups/{group_id}"
@@ -158,10 +192,18 @@ def get_group_score(group_id):
     members = tuple_to_array(member_objects, 0)
     usernames = tuple_to_array(member_objects, 1)
     display_names = tuple_to_array(member_objects, 2) 
-    matched_members = match_usernames(usernames, display_names, members, wordlist)
+    matched_members_full = match_usernames(usernames, display_names, members, wordlist)
+
+    # caching stuff
+    group_object = {
+        "members": [],
+        "match_score": 0,
+        "id": 0
+    }
 
     with open(path.realpath(users_output_file), 'a') as users_file:
-        for member in matched_members:
+        for i in matched_members_full:
+            member = i[0]
             group_score += 1
             users_file.write(f'https://roblox.com/users/{member}/profile\n')
             if verbose: print(f'[Info] Found user: https://roblox.com/users/{member}/profile')
@@ -172,13 +214,59 @@ def get_group_score(group_id):
                 friends = get_user_friends(member)
                 matched_friends = match_usernames(tuple_to_array(friends, 0), tuple_to_array(friends, 1), tuple_to_array(friends, 2), wordlist)
                 
+                if caching:
+                    group_object["members"].append({
+                        "username": usernames[i[2]],
+                        "display_name": display_names[i[2]],
+                        "id": members[i[0]],
+                        "match_score": members[i[1]]
+                    })
+
                 for friend in matched_friends:
                     users_file.write(f'https://roblox.com/users/{friend}/profile\n')
                     if verbose: print(f'[Info] Found user: https://roblox.com/users/{friend}/profile')
             else:
                 if verbose: print(f'[Info] User {member} has more than {maximum_friend_count} friends. Skipping friend check.')
     
+    if caching:
+        group_object["match_score"] = group_score
+        group_object["id"] = group_id
+    
+        user_cache_json, group_cache_json = get_cache_contents(cache_folder)
+        group_cache_json.append(group_object)
+        write_cache_contents(cache_folder, group_cache_json=group_cache_json)
+
     return group_score     
+
+def add_group(group_id, groups_file):
+    # TODO: check this function out a little more
+    # TODO: test the caching function (i didnt)
+
+    group_info = get_group_info(group_id)
+
+    if group_info == "timeout" and auto_retry_after_timeout: # Catch the first timeout
+        if verbose: print(f'[Info] Timeout error on get_group_info(). Waiting {request_delay * 2} seconds and retrying.')
+        time.sleep(request_delay * 2) # Wait twice the amount of time
+
+        group_info = get_group_info(group_id) # Try again...
+    elif group_info == "timeout":
+        fancy_error("get_group_info()", "Timeout error.", "HTTP code 429.")
+
+    if group_info == "timeout": # In this case this would be the second timeout.
+        fancy_error("get_group_info()", "Timeout error number 2. Try increasing the request delay or wait a little and run the script again.")
+
+    if not group_info: return None
+
+    if group_info["memberCount"] > group_maximum_members:
+        if verbose: print(f'[Info] Group {group_id} with {group_info["memberCount"]} members is above the limit of {group_maximum_members} group members. Skipping...')
+        return None
+
+    group_score = get_group_score(group_id)
+    if group_score >= group_minimum_matches:
+        if verbose: print(f'[Info] Found group: https://roblox.com/groups/{group_id}/x - {group_score}')
+        groups_file.write(f"https://roblox.com/groups/{group_id}/x - {group_score}\n")
+    else:
+        if verbose: print(f'[Info] Group {group_id} has less than {group_minimum_matches} matches. It will not be added to the text file.')
 
 def get_user_groups(user_id):
     url = f"https://groups.roblox.com/v1/users/{user_id}/groups/roles"
@@ -228,6 +316,51 @@ def get_user_info(user_id):
     elif response.status_code == 404:
         return None # invalid user
 
+def search_user_cache(user_id, cache_json):
+    for member in cache_json:
+        if member["id"] == user_id: return member
+
+def search_group_cache_for_user(user_id, cache_json):
+    results = []
+
+    for group in cache_json:
+        for member in group["members"]: 
+            if member["id"] == user_id: results.append(group)
+    
+    return results
+
+def search_group_cache_for_group(group_id, cache_json):
+    for group in cache_json:
+        if group["id"] == group_id: return group
+
+def get_user_score(user_id):
+    if not caching:
+        fancy_warning('get_user_score()', 'Caching needs to be on to get the user score.')
+        return None
+
+    wordlist = set(expand_list(matchlist))
+
+    user_cache_json, group_cache_json = get_cache_contents()
+    user_info = get_user_info(user_id)
+
+    match_score = match_string(user_info["username"], wordlist) + match_string(user_info["displayName"], wordlist)
+    group_cache_results = search_group_cache_for_user(user_id, group_cache_json)
+
+    for result in group_cache_results:
+        match_score += 1
+
+    return match_score
+
+def add_user(user_id, users_file):
+    if caching:
+        user_score = get_user_score(user_id)
+        if user_score > minimum_user_match_score:
+            users_file.write(f'https://roblox.com/users/{user_id}/profile\n')
+            if verbose: print(f'[Info] Found user: https://roblox.com/users/{user_id}/profile')
+    else:
+        users_file.write(f'https://roblox.com/users/{user_id}/profile\n')
+        if verbose: print(f'[Info] Found user: https://roblox.com/users/{user_id}/profile')
+
 def match_string(string, match_list):
     match_score = 0
 
@@ -256,9 +389,20 @@ def match_usernames(name_list, display_list, id_list, match_list):
         if not username == None and not display_name == None:
             match_score = match_string(username, match_list) + match_string(display_name, match_list)
 
+            if caching:
+                user_cache_json, group_cache_json = get_cache_contents(cache_folder)
+                user_cache_json.append({
+                    "username": username,
+                    "display_name": display_name,
+                    "id": id,
+                    "match_score": match_score
+                })
+
+                write_cache_contents(cache_folder, user_cache_json=user_cache_json)
+
             if match_score >= match_score_limit:
-                final_list.append(id)
-    
+                final_list.append([id, match_score, i])
+
     return final_list
 
 def expand_list(list):

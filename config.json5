@@ -1,6 +1,6 @@
 {
     // A list of the group ID's the script has to start with.
-    initial_groups: ["6950155", "10376187"],
+    initial_groups: ["33903172"],
 
     // This is the words the script tries to find in usernames.
     matchlist: ["fem", "femboy", "femby", "bbc", "toy", "slut", "cumslut", "cum", "milk", "milked", "inch", "inches", "12y", "12yo", "13y", "13yo", "14y", "14yo", "12years", "13years", "14years", "bull", "bigbull", "horny", "hrny"],
@@ -36,5 +36,16 @@
     mode: 1,
 
     // If true, the script will wait double the request delay after a timed out request, then try again.
-    auto_retry_after_timeout: true
+    auto_retry_after_timeout: true,
+
+    // Cache groups and users for better performance and less API requests.
+    // Also improves results sometimes.
+    caching: true,
+    
+    // Folder where the cache files are stored
+    caching_folder: "cache",
+
+    // How many offensive groups the user has to be in to be put in the output file.
+    // This only applies if caching is on.
+    minimum_user_match_score: 1
 }

@@ -165,3 +165,7 @@ groups.txt
 
 # i hate replit
 .replit
+
+# cache
+cache/*
+cache
